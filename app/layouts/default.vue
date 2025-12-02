@@ -13,10 +13,13 @@ const tabs = [
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50 pb-20">
-        <slot />
+    <div class="flex flex-col h-dvh bg-slate-50 overflow-hidden">
 
-        <div class="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white pb-safe z-50">
+        <main class="flex-1 overflow-y-auto scroll-smooth">
+            <slot />
+        </main>
+
+        <nav class="border-t border-slate-200 bg-white pb-safe z-50 flex-shrink-0">
             <div class="flex items-center justify-around h-16">
                 <NuxtLink v-for="tab in tabs" :key="tab.path" :to="tab.path"
                     class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors active:scale-95"
@@ -25,7 +28,8 @@ const tabs = [
                     <span class="text-[10px] font-medium">{{ tab.name }}</span>
                 </NuxtLink>
             </div>
-        </div>
+        </nav>
+
     </div>
 </template>
 
