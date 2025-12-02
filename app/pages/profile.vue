@@ -36,6 +36,6 @@ const logout = async () => {
         <hr class="my-4" />
 
         <p class="text-gray-500 text-sm">当前用户: {{ user?.email }}</p>
-        <Button @click="logout" class="bg-gray-200 px-4 py-2 rounded">退出登录</Button>
+        <button @click="logout" class="bg-gray-200 px-4 py-2 rounded">退出登录</button>
     </div>
 </template>
