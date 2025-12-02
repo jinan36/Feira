@@ -175,7 +175,7 @@ const handleLogout = async () => {
                 </Card>
             </section>
 
-            <div class="space-y-4 pb-10">
+            <div class="space-y-4">
                 <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
                     <UserCircle2 class="w-3 h-3" />
                     <span>{{ user?.email }}</span>
