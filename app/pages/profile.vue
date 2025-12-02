@@ -9,6 +9,17 @@ import {
     Trash2
 } from 'lucide-vue-next'
 
+// 引入 Drawer 组件
+import {
+    Drawer,
+    DrawerContent,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerClose
+} from '@/components/ui/drawer'
+
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const { currentOrg, initOrg, loading: orgLoading } = useOrg()
@@ -122,7 +133,6 @@ const handleLogout = async () => {
                 </div>
 
                 <Card class="border-slate-100 shadow-sm overflow-hidden">
-
                     <div v-if="vendorLoading" class="p-6 space-y-4">
                         <div class="flex items-center justify-between" v-for="i in 3" :key="i">
                             <div class="flex items-center gap-3">
@@ -184,26 +194,29 @@ const handleLogout = async () => {
 
         </div>
 
-        <Dialog :open="isVendorDialogOpen" @update:open="isVendorDialogOpen = $event">
-            <DialogContent class="max-w-[90%] rounded-2xl sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>添加供应商</DialogTitle>
-                    <DialogDescription>
-                        输入供应商名称，如：Atacadão, 菜市场。
-                    </DialogDescription>
-                </DialogHeader>
-                <div class="py-4">
-                    <Label for="name" class="text-right sr-only">名称</Label>
-                    <Input id="name" v-model="newVendorName" placeholder="例如: Atacadão" class="h-12 text-lg"
-                        @keyup.enter="handleAddVendor" />
+        <Drawer :open="isVendorDialogOpen" @update:open="isVendorDialogOpen = $event">
+            <DrawerContent>
+                <div class="mx-auto w-full max-w-sm">
+                    <DrawerHeader>
+                        <DrawerTitle class="text-xl font-bold">添加供应商</DrawerTitle>
+                        <DrawerDescription>输入供应商名称，如：Atacadão</DrawerDescription>
+                    </DrawerHeader>
+
+                    <div class="p-4 pb-0 space-y-4">
+                        <Input v-model="newVendorName" placeholder="例如: Atacadão" class="h-14 text-lg" />
+                    </div>
+
+                    <DrawerFooter>
+                        <Button @click="handleAddVendor" :disabled="!newVendorName" class="w-full h-12 text-base">
+                            确认添加
+                        </Button>
+                        <DrawerClose @click="newVendorName = ''" as-child>
+                            <Button variant="outline" class="h-12">取消</Button>
+                        </DrawerClose>
+                    </DrawerFooter>
                 </div>
-                <DialogFooter>
-                    <Button @click="handleAddVendor" :disabled="!newVendorName" class="w-full h-12">
-                        确认添加
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </DrawerContent>
+        </Drawer>
 
         <AlertDialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = $event">
             <AlertDialogContent class="max-w-[90%] rounded-2xl sm:max-w-[425px]">
