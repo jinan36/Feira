@@ -1,4 +1,3 @@
-// composables/useOrg.ts
 export const useOrg = () => {
   const user = useSupabaseUser();
   const supabase = useSupabaseClient();
@@ -11,7 +10,6 @@ export const useOrg = () => {
 
     loading.value = true;
     try {
-      console.log(user.value);
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("current_org_id")
@@ -41,7 +39,7 @@ export const useOrg = () => {
       loading.value = false;
     }
   };
-
+ 
   return {
     currentOrg,
     loading,

@@ -18,7 +18,6 @@ const handleLogin = async () => {
   }
 }
 
-// 禁用默认布局（不需要底部导航）
 definePageMeta({
   layout: false
 })
