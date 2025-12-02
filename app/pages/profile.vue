@@ -4,10 +4,11 @@ import {
     LogOut,
     Plus,
     Store,
-    UserCircle2 // 引入一个用户图标用于显示账号
+    UserCircle2,
+    ArrowLeftRight,
+    Trash2
 } from 'lucide-vue-next'
 
-// ... (原有的 script 逻辑部分保持不变)
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const { currentOrg, initOrg, loading: orgLoading } = useOrg()
@@ -17,7 +18,10 @@ const { vendors, loading: vendorLoading, fetchVendors, createVendor, deleteVendo
 const isVendorDialogOpen = ref(false)
 const newVendorName = ref('')
 
-// 初始化
+// 删除确认弹窗状态
+const isDeleteDialogOpen = ref(false)
+const vendorToDelete = ref(null)
+
 onMounted(async () => {
     if (!currentOrg.value) await initOrg()
     if (currentOrg.value?.id) fetchVendors()
@@ -27,12 +31,28 @@ watch(currentOrg, (newVal) => {
     if (newVal?.id) fetchVendors()
 })
 
+// 添加供应商
 const handleAddVendor = async () => {
     if (!newVendorName.value.trim()) return
     const success = await createVendor(newVendorName.value)
     if (success) {
         isVendorDialogOpen.value = false
         newVendorName.value = ''
+    }
+}
+
+// 打开删除确认框
+const openDeleteConfirm = (vendor) => {
+    vendorToDelete.value = vendor
+    isDeleteDialogOpen.value = true
+}
+
+// 执行删除
+const confirmDelete = async () => {
+    if (vendorToDelete.value) {
+        await deleteVendor(vendorToDelete.value.id)
+        isDeleteDialogOpen.value = false
+        vendorToDelete.value = null
     }
 }
 
@@ -43,120 +63,166 @@ const handleLogout = async () => {
 </script>
 
 <template>
-    <div class="relative flex-1 p-6 selection:bg-slate-200">
+    <div class="relative flex-1 p-6 pt-12 selection:bg-slate-200">
 
         <div
             class="fixed inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]">
         </div>
 
-        <div class="max-w-lg mx-auto">
+        <div class="max-w-lg mx-auto space-y-10">
 
-            <div class="space-y-10">
+            <section class="space-y-3">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
+                    当前组织
+                </h3>
 
-                <section class="space-y-4">
-                    <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider px-1">
-                        工作空间
-                    </h3>
-
-                    <div
-                        class="bg-white rounded-2xl border border-slate-100/80 shadow-sm p-5 flex items-center gap-5 transition-shadow hover:shadow-md">
-                        <div
-                            class="h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                            <Building2 class="w-7 h-7" stroke-width="1.5" />
+                <div class="px-1">
+                    <div v-if="orgLoading" class="flex items-center justify-between">
+                        <div class="space-y-2">
+                            <Skeleton class="h-9 w-48" />
+                            <Skeleton class="h-4 w-24" />
                         </div>
+                        <Skeleton class="h-9 w-9 rounded-full" />
+                    </div>
 
+                    <div v-else class="flex items-center justify-between gap-4">
                         <div class="flex-1 min-w-0">
-                            <div v-if="orgLoading" class="space-y-2 animate-pulse">
-                                <div class="h-6 w-32 bg-slate-200 rounded"></div>
-                                <div class="h-4 w-24 bg-slate-100 rounded"></div>
-                            </div>
-                            <div v-else>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <h2 class="text-xl font-bold text-slate-900 truncate">
-                                        {{ currentOrg?.name || '未加载组织' }}
-                                    </h2>
-                                    <Badge variant="secondary"
-                                        class="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
-                                        Owner
-                                    </Badge>
-                                </div>
-                                <p class="text-xs text-slate-400 font-mono leading-tight truncate">
-                                    ID: {{ currentOrg?.id }}
+                            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none truncate">
+                                {{ currentOrg?.name || '未加载' }}
+                            </h2>
+                            <div class="flex items-center gap-2 mt-2">
+                                <Badge variant="secondary"
+                                    class="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100 rounded-sm px-1.5 h-5 text-[10px]">
+                                    Owner
+                                </Badge>
+                                <p class="text-xs text-slate-400 font-mono">
+                                    ID: {{ currentOrg?.id?.slice(0, 8) }}...
                                 </p>
                             </div>
                         </div>
+
+                        <Button variant="outline" size="icon" class="rounded-full h-9 w-9 shrink-0">
+                            <ArrowLeftRight class="w-4 h-4 text-slate-500" />
+                        </Button>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <section class="space-y-4">
-                    <div class="flex items-center justify-between px-1">
-                        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                            供应商管理
-                        </h3>
-                        <button @click="isVendorDialogOpen = true"
-                            class="group flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-50">
-                            <Plus class="w-4 h-4 transition-transform group-hover:rotate-90" />
-                            <span>新建</span>
-                        </button>
-                    </div>
-
-                    <div class="bg-white rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden">
-                        <div v-if="vendorLoading" class="p-8 flex justify-center">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-                        </div>
-
-                        <div v-else-if="vendors.length === 0" class="py-12 px-6 text-center">
-                            <div
-                                class="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
-                                <Store class="w-10 h-10 text-slate-300" stroke-width="1.5" />
-                            </div>
-                            <h4 class="text-base font-semibold text-slate-900 mb-2">还没有供应商</h4>
-                            <p class="text-sm text-slate-500 max-w-xs mx-auto leading-relaxed">
-                                添加您常去的采购地点（如超市、菜市场），以便在库房录入商品。
-                            </p>
-                        </div>
-
-                        <div v-else class="divide-y divide-slate-50">
-                            <div v-for="vendor in vendors" :key="vendor.id"
-                                class="group flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-xs font-bold">
-                                        {{ vendor.name.charAt(0).toUpperCase() }}
-                                    </div>
-                                    <span class="text-sm font-medium text-slate-700">{{ vendor.name }}</span>
-                                </div>
-
-                                <button @click="deleteVendor(vendor.id)"
-                                    class="text-slate-300 hover:text-red-500 p-2 opacity-0 group-hover:opacity-100 transition-all">
-                                    <Trash2 class="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <div class="mt-4 space-y-6">
-
-                <div
-                    class="flex items-center justify-center gap-2 text-sm text-slate-500 bg-slate-50 py-3 rounded-xl border border-slate-100">
-                    <UserCircle2 class="w-4 h-4" />
-                    <span>当前登录：<span class="font-medium text-slate-700">{{ user?.email }}</span></span>
+            <section class="space-y-4">
+                <div class="flex items-center justify-between px-1">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        供应商管理
+                    </h3>
+                    <Button variant="ghost" size="sm"
+                        class="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 px-2"
+                        @click="isVendorDialogOpen = true">
+                        <Plus class="w-4 h-4 mr-1" />
+                        新建
+                    </Button>
                 </div>
 
-                <button @click="handleLogout"
-                    class="group relative flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-slate-900 text-base font-medium text-white transition-all hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/20 active:scale-[0.95]">
-                    <LogOut class="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                    <span>退出登录</span>
-                </button>
+                <Card class="border-slate-100 shadow-sm overflow-hidden">
 
-                <p class="text-center text-[10px] text-slate-400 font-mono uppercase tracking-widest">
+                    <div v-if="vendorLoading" class="p-6 space-y-4">
+                        <div class="flex items-center justify-between" v-for="i in 3" :key="i">
+                            <div class="flex items-center gap-3">
+                                <Skeleton class="h-9 w-9 rounded-full" />
+                                <Skeleton class="h-4 w-32" />
+                            </div>
+                            <Skeleton class="h-8 w-8 rounded-md" />
+                        </div>
+                    </div>
+
+                    <div v-else-if="vendors.length === 0" class="py-12 px-6 text-center">
+                        <div
+                            class="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                            <Store class="w-10 h-10 text-slate-300" stroke-width="1.5" />
+                        </div>
+                        <h4 class="text-base font-semibold text-slate-900 mb-2">还没有供应商</h4>
+                        <p class="text-sm text-slate-500 max-w-xs mx-auto leading-relaxed">
+                            添加您常去的采购地点，以便录入商品。
+                        </p>
+                    </div>
+
+                    <div v-else class="divide-y divide-slate-50">
+                        <div v-for="vendor in vendors" :key="vendor.id"
+                            class="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors group">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm font-bold shadow-sm">
+                                    {{ vendor.name.charAt(0).toUpperCase() }}
+                                </div>
+                                <span class="text-sm font-medium text-slate-700">{{ vendor.name }}</span>
+                            </div>
+
+                            <Button variant="ghost" size="icon"
+                                class="h-8 w-8 text-slate-300 hover:text-red-600 hover:bg-red-50"
+                                @click="openDeleteConfirm(vendor)">
+                                <Trash2 class="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            </section>
+
+            <div class="space-y-4 pb-10">
+                <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
+                    <UserCircle2 class="w-3 h-3" />
+                    <span>{{ user?.email }}</span>
+                </div>
+
+                <Button size="lg" class="w-full h-14 text-base font-medium rounded-xl shadow-lg shadow-slate-900/10"
+                    @click="handleLogout">
+                    <LogOut class="w-5 h-5 mr-2" />
+                    退出登录
+                </Button>
+
+                <p class="text-center text-[10px] text-slate-300 font-mono uppercase tracking-widest pt-2">
                     FEIRA v1.0.0
                 </p>
             </div>
 
         </div>
+
+        <Dialog :open="isVendorDialogOpen" @update:open="isVendorDialogOpen = $event">
+            <DialogContent class="max-w-[90%] rounded-2xl sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>添加供应商</DialogTitle>
+                    <DialogDescription>
+                        输入供应商名称，如：Atacadão, 菜市场。
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="py-4">
+                    <Label for="name" class="text-right sr-only">名称</Label>
+                    <Input id="name" v-model="newVendorName" placeholder="例如: Atacadão" class="h-12 text-lg"
+                        @keyup.enter="handleAddVendor" />
+                </div>
+                <DialogFooter>
+                    <Button @click="handleAddVendor" :disabled="!newVendorName" class="w-full h-12">
+                        确认添加
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <AlertDialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = $event">
+            <AlertDialogContent class="max-w-[90%] rounded-2xl sm:max-w-[425px]">
+                <AlertDialogHeader>
+                    <AlertDialogTitle>确定要删除吗？</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        您正在删除供应商 <span class="font-bold text-slate-900">“{{ vendorToDelete?.name }}”</span>。<br>
+                        如果该供应商下有关联的商品，删除可能会失败。
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogAction @click="confirmDelete"
+                        class="bg-red-600 hover:bg-red-700 text-white border-none">
+                        确认删除
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
     </div>
 </template>
