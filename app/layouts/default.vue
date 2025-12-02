@@ -6,9 +6,9 @@ const route = useRoute()
 // 定义四个 Tab
 const tabs = [
     { name: '清单', path: '/', icon: ClipboardList },
-    { name: '库房', path: '/products', icon: PackageSearch }, // 这个页面还没做
-    { name: '报表', path: '/stats', icon: BarChart3 },      // 这个也没做
-    { name: '我的', path: '/profile', icon: UserCog }       // 也没做
+    { name: '库房', path: '/products', icon: PackageSearch },
+    // { name: '报表', path: '/stats', icon: BarChart3 },      
+    { name: '我的', path: '/profile', icon: UserCog }
 ]
 </script>
 
