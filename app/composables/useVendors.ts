@@ -32,7 +32,7 @@ export const useVendors = () => {
     if (!currentOrg.value?.id) return false // 返回 false 表示失败
 
     const { error } = await supabase.from('vendors').insert({
-      name,
+      name: name.trim(),
       organization_id: currentOrg.value.id
     })
 

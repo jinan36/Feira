@@ -86,7 +86,7 @@ const handleLogout = async () => {
             class="fixed inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]">
         </div>
 
-        <div class="max-w-lg mx-auto space-y-12">
+        <div class="max-w-lg mx-auto space-y-6">
 
             <section class="space-y-3">
                 <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
@@ -165,7 +165,7 @@ const handleLogout = async () => {
                     </button>
                 </div>
 
-                <Card class="border-slate-100 shadow-sm overflow-hidden bg-white">
+                <div class="border-slate-100 shadow-sm overflow-hidden bg-white">
                     <div v-if="vendorLoading" class="p-6 space-y-4">
                         <div class="flex items-center justify-between" v-for="i in 2" :key="i">
                             <div class="flex items-center gap-3">
@@ -203,7 +203,7 @@ const handleLogout = async () => {
                             </button>
                         </div>
                     </div>
-                </Card>
+                </div>
             </section>
 
             <div class="space-y-4">
@@ -276,7 +276,7 @@ const handleLogout = async () => {
                         <DrawerDescription>输入名称</DrawerDescription>
                     </DrawerHeader>
                     <div class="p-4 space-y-4">
-                        <Input v-model="newVendorName" placeholder="例如: Atacadão" class="h-12 text-lg"
+                        <Input v-model.trim="newVendorName" placeholder="例如: Atacadão" class="h-12 text-lg"
                             @keyup.enter="handleAddVendor" />
                     </div>
                     <DrawerFooter>
