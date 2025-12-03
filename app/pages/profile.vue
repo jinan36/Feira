@@ -1,7 +1,8 @@
 <script setup>
 import {
     LogOut, Plus, Store, UserCircle2, ArrowLeftRight, Trash2,
-    Check, Info
+    Check, Users,
+    ChevronRight
 } from 'lucide-vue-next'
 import {
     Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose
@@ -12,19 +13,17 @@ const supabase = useSupabaseClient()
 
 // 引入 Composable
 const { currentOrg, myOrgs, loading: orgLoading, initOrg, switchOrg, createOrg } = useOrg()
-const { members: orgMembers, fetchMembers, inviteMember } = useMembers()
+const { members: orgMembers, fetchMembers } = useMembers()
 const { vendors, loading: vendorLoading, fetchVendors, createVendor, deleteVendor } = useVendors()
 
 // 状态管理
 const showSwitchDrawer = ref(false)  // 切换组织抽屉
-const showInviteDrawer = ref(false)  // 邀请成员抽屉
 const isVendorDialogOpen = ref(false)// 供应商抽屉
 const isDeleteDialogOpen = ref(false)// 删除确认弹窗
 
 // 表单输入
 const newVendorName = ref('')
 const newOrgName = ref('')
-const inviteEmail = ref('')
 const vendorToDelete = ref(null)
 const isCreatingOrgMode = ref(false) // 切换抽屉里的视图状态
 
@@ -38,7 +37,6 @@ onMounted(async () => {
     }
 })
 
-// 监听组织变化，重新拉取数据
 watch(currentOrg, (newVal) => {
     if (newVal?.id) {
         fetchVendors()
@@ -46,9 +44,6 @@ watch(currentOrg, (newVal) => {
     }
 })
 
-// --- 动作处理 ---
-
-// 1. 添加供应商
 const handleAddVendor = async () => {
     if (!newVendorName.value.trim()) return
     const success = await createVendor(newVendorName.value)
@@ -58,7 +53,6 @@ const handleAddVendor = async () => {
     }
 }
 
-// 2. 删除供应商确认
 const openDeleteConfirm = (vendor) => {
     vendorToDelete.value = vendor
     isDeleteDialogOpen.value = true
@@ -71,7 +65,6 @@ const confirmDelete = async () => {
     }
 }
 
-// 3. 创建新组织
 const handleCreateOrg = async () => {
     if (!newOrgName.value.trim()) return
     const success = await createOrg(newOrgName.value.trim())
@@ -82,20 +75,6 @@ const handleCreateOrg = async () => {
     }
 }
 
-// 4. 邀请成员
-const handleInvite = async () => {
-    if (!inviteEmail.value.trim()) return
-    const res = await inviteMember(inviteEmail.value.trim())
-    if (res.success) {
-        showInviteDrawer.value = false
-        inviteEmail.value = ''
-        alert('邀请成功！')
-    } else {
-        alert(res.msg)
-    }
-}
-
-// 5. 退出登录
 const handleLogout = async () => {
     await supabase.auth.signOut()
     navigateTo('/login')
@@ -103,7 +82,7 @@ const handleLogout = async () => {
 </script>
 
 <template>
-    <div class="relative flex-1 p-6 pt-12 selection:bg-slate-200">
+    <div class="relative flex-1 p-6 selection:bg-slate-200">
 
         <div
             class="fixed inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]">
@@ -150,29 +129,29 @@ const handleLogout = async () => {
                 </div>
             </section>
 
-            <section class="space-y-3">
-                <div class="flex items-center justify-between px-1">
-                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">团队成员</h3>
+            <section v-if="!currentOrg?.is_personal" class="space-y-3">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
+                    管理
+                </h3>
 
-                    <button v-if="!currentOrg?.is_personal" @click="showInviteDrawer = true"
-                        class="text-blue-600 text-xs flex items-center font-medium transition-opacity hover:opacity-80">
-                        <Plus class="w-3 h-3 mr-1" /> 邀请
-                    </button>
-                    <span v-else class="text-[10px] text-slate-300 bg-slate-50 px-2 py-0.5 rounded-full">个人空间</span>
-                </div>
+                <div
+                    class="bg-white rounded-xl border border-slate-100/80 shadow-sm overflow-hidden divide-y divide-slate-50">
 
-                <div class="flex items-center gap-3 overflow-x-auto py-2 px-1 scrollbar-hide">
-                    <div v-for="m in orgMembers" :key="m.id" class="flex flex-col items-center gap-1 min-w-[56px]">
-                        <Avatar class="h-12 w-12 border-2 border-white shadow-sm ring-1 ring-slate-100">
-                            <AvatarImage :src="m.profiles?.avatar_url" />
-                            <AvatarFallback class="bg-slate-100 text-slate-600 font-bold">
-                                {{ m.profiles?.full_name?.charAt(0).toUpperCase() || 'U' }}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span class="text-[10px] text-slate-500 truncate w-16 text-center">
-                            {{ m.profiles?.full_name || '成员' }}
-                        </span>
-                    </div>
+                    <NuxtLink to="/members"
+                        class="flex items-center justify-between p-4 active:bg-slate-50 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <Users class="w-5 h-5" />
+                            </div>
+                            <span class="text-sm font-medium text-slate-700">团队成员</span>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400">{{ orgMembers.length }} 人</span>
+                            <ChevronRight class="w-4 h-4 text-slate-300 group-hover:text-slate-400" />
+                        </div>
+                    </NuxtLink>
+
                 </div>
             </section>
 
@@ -229,7 +208,7 @@ const handleLogout = async () => {
                 </Card>
             </section>
 
-            <div class="space-y-4 pb-10">
+            <div class="space-y-4">
                 <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
                     <UserCircle2 class="w-3 h-3" />
                     <span>{{ user?.email }}</span>
@@ -285,26 +264,6 @@ const handleLogout = async () => {
                                     @click="handleCreateOrg">创建</Button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </DrawerContent>
-        </Drawer>
-
-        <Drawer :open="showInviteDrawer" @update:open="showInviteDrawer = $event">
-            <DrawerContent>
-                <div class="mx-auto w-full max-w-sm">
-                    <DrawerHeader>
-                        <DrawerTitle>邀请成员</DrawerTitle>
-                        <DrawerDescription>输入对方注册时的邮箱地址</DrawerDescription>
-                    </DrawerHeader>
-                    <div class="p-4 space-y-4">
-                        <div class="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg flex gap-2">
-                            <Info class="w-4 h-4 shrink-0" />
-                            <p>对方必须已经使用 Google 登录过本 App，否则无法邀请。</p>
-                        </div>
-                        <Input v-model="inviteEmail" placeholder="例如: partner@gmail.com" class="h-12 text-lg" />
-                        <Button class="w-full h-12 bg-slate-900" :disabled="!inviteEmail"
-                            @click="handleInvite">发送邀请</Button>
                     </div>
                 </div>
             </DrawerContent>
