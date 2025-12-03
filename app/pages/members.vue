@@ -6,7 +6,7 @@ import {
     Shield,
 } from 'lucide-vue-next'
 
-const { currentOrg, initOrg } = useOrg()
+const { currentOrg } = useOrg()
 const { members: orgMembers, fetchMembers, inviteMember, loading } = useMembers() // 引入 loading
 const router = useRouter()
 
@@ -18,10 +18,6 @@ definePageMeta({
 })
 
 onMounted(async () => {
-    if (!currentOrg.value) {
-        await initOrg()
-    }
-
     if (currentOrg.value?.id) {
         fetchMembers()
     }

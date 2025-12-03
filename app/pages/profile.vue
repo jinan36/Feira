@@ -29,10 +29,8 @@ const isCreatingOrgMode = ref(false) // 切换抽屉里的视图状态
 
 // 初始化加载
 onMounted(async () => {
-    if (!currentOrg.value) await initOrg()
     if (currentOrg.value?.id) {
         fetchVendors()
-        // 确保成员列表也加载了
         if (orgMembers.value.length === 0) fetchMembers()
     }
 })
@@ -71,7 +69,7 @@ const handleCreateOrg = async () => {
     if (success) {
         showSwitchDrawer.value = false
         newOrgName.value = ''
-        isCreatingOrgMode.value = false // 重置回列表视图
+        isCreatingOrgMode.value = false
     }
 }
 
@@ -233,10 +231,9 @@ const handleLogout = async () => {
                 <div class="mx-auto w-full max-w-sm">
                     <DrawerHeader>
                         <DrawerTitle>{{ isCreatingOrgMode ? '创建新组织' : '切换组织' }}</DrawerTitle>
-                        <DrawerDescription v-if="isCreatingOrgMode">输入新组织的名称</DrawerDescription>
                     </DrawerHeader>
 
-                    <div class="p-4 space-y-4">
+                    <div class="p-4 pt-0 space-y-4">
                         <div v-if="!isCreatingOrgMode" class="space-y-2">
                             <div v-for="org in myOrgs" :key="org.id"
                                 @click="switchOrg(org.id); showSwitchDrawer = false;"
@@ -248,23 +245,25 @@ const handleLogout = async () => {
                                 </div>
                                 <Check v-if="org.id === currentOrg?.id" class="w-5 h-5" />
                             </div>
-
-                            <button @click="isCreatingOrgMode = true"
-                                class="w-full py-3 mt-4 text-sm font-medium text-slate-500 border border-dashed border-slate-300 rounded-xl hover:bg-slate-50 flex items-center justify-center gap-2 active:bg-slate-100">
-                                <Plus class="w-4 h-4" /> 创建新组织
-                            </button>
                         </div>
-
                         <div v-else class="space-y-4">
-                            <Input v-model="newOrgName" placeholder="例如: 第二分店" class="h-12 text-lg" auto-focus />
-                            <div class="flex gap-3">
-                                <Button variant="outline" class="flex-1 h-12"
-                                    @click="isCreatingOrgMode = false">取消</Button>
-                                <Button class="flex-1 h-12 bg-slate-900" :disabled="!newOrgName"
-                                    @click="handleCreateOrg">创建</Button>
-                            </div>
+                            <Input v-model="newOrgName" placeholder="组织名称" class="h-12 text-lg" auto-focus />
                         </div>
                     </div>
+                    <DrawerFooter>
+                        <template v-if="!isCreatingOrgMode">
+                            <Button @click="isCreatingOrgMode = true" size="lg">
+                                <Plus class="w-4 h-4" /> 创建新组织
+                            </Button>
+                            <DrawerClose as-child>
+                                <Button variant="outline" size="lg">取消</Button>
+                            </DrawerClose>
+                        </template>
+                        <template v-else>
+                            <Button size="lg" :disabled="!newOrgName" @click="handleCreateOrg">创建</Button>
+                            <Button size="lg" variant="outline" @click="isCreatingOrgMode = false">取消</Button>
+                        </template>
+                    </DrawerFooter>
                 </div>
             </DrawerContent>
         </Drawer>
