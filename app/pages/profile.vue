@@ -1,7 +1,7 @@
 <script setup>
 import {
-    Building2, LogOut, Plus, Store, UserCircle2, ArrowLeftRight, Trash2,
-    Check, Users, Info
+    LogOut, Plus, Store, UserCircle2, ArrowLeftRight, Trash2,
+    Check, Info
 } from 'lucide-vue-next'
 import {
     Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose
@@ -11,7 +11,8 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 
 // 引入 Composable
-const { currentOrg, myOrgs, orgMembers, loading: orgLoading, initOrg, switchOrg, createOrg, fetchMembers, inviteMember } = useOrg()
+const { currentOrg, myOrgs, loading: orgLoading, initOrg, switchOrg, createOrg } = useOrg()
+const { members: orgMembers, fetchMembers, inviteMember } = useMembers()
 const { vendors, loading: vendorLoading, fetchVendors, createVendor, deleteVendor } = useVendors()
 
 // 状态管理
