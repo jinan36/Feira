@@ -1,5 +1,6 @@
 import type { Database } from '~/types/database.types'
 
+import { toast } from 'vue-sonner'
 // 定义成员数据的类型，方便前端使用
 type OrgMember = {
   id: string
@@ -100,27 +101,39 @@ export const useOrg = () => {
     const userId = user.value?.sub || user.value?.id
     if (!userId) return false
 
-    try {
-      // A. 插入组织表
+    // 使用 toast.promise 处理异步加载状态
+    const promise = (async () => {
+      // A. 插入组织
       const { data: newOrg, error: orgError } = await supabase
         .from('organizations')
         .insert({ name, owner_id: userId, is_personal: false })
         .select()
         .single()
 
-      if (orgError) throw orgError
+      if (orgError) throw new Error(orgError.message)
 
+      // B. 插入成员
       const { error: memberError } = await supabase
         .from('organization_members')
         .insert({ organization_id: newOrg.id, user_id: userId, role: 'owner' })
 
-      if (memberError) throw memberError
+      if (memberError) throw new Error(memberError.message)
 
+      // C. 刷新并切换
       await fetchMyOrgs()
       await switchOrg(newOrg.id)
-      return true
-    } catch (e: any) {
-      alert('创建失败: ' + e.message)
+      return newOrg.name
+    })()
+
+    // 绑定 Toast UI
+    try {
+      const orgName = await toast.promise(promise, {
+        loading: '正在创建组织...',
+        success: (name: string) => `成功创建并切换至 ${name}`,
+        error: (err) => `创建失败: ${err.message}`
+      })
+      return true // 返回 true 让页面知道要关闭抽屉
+    } catch {
       return false
     }
   }
@@ -138,35 +151,53 @@ export const useOrg = () => {
   }
 
   const inviteMember = async (email: string) => {
-    if (!currentOrg.value?.id) return { success: false, msg: '未选中组织' }
-
-    if (currentOrg.value.is_personal) {
-      return { success: false, msg: '个人组织无法邀请成员，请先创建新组织（如：XX饭店）。' }
+    if (!currentOrg.value?.id) {
+      toast.error('未选中组织')
+      return false
     }
 
-    const { data: foundUser, error: findError } = await supabase.rpc('get_profile_by_email', {
-      email_input: email
-    })
+    if (currentOrg.value.is_personal) {
+      toast.error('操作被拒绝', { description: '个人组织无法邀请成员，请先创建新组织。' })
+      return false
+    }
 
-    if (findError || !foundUser)
-      return { success: false, msg: '未找到该用户，请确认对方已注册 App' }
+    const promise = (async () => {
+      // A. 找人
+      const { data: foundUser, error: findError } = await supabase.rpc('get_profile_by_email', {
+        email_input: email
+      })
 
-    // B. 检查是否已经在组织里
-    // @ts-ignore
-    const exists = orgMembers.value.find((m) => m.profiles?.email === email)
-    if (exists) return { success: false, msg: '该用户已在组织中' }
+      if (findError || !foundUser) throw new Error('未找到该用户，请确认对方已注册 App')
 
-    const { error: insertError } = await supabase.from('organization_members').insert({
-      organization_id: currentOrg.value.id,
+      // B. 查重
       // @ts-ignore
-      user_id: foundUser.id,
-      role: 'member'
-    })
+      const exists = orgMembers.value.find((m) => m.profiles?.email === email)
+      if (exists) throw new Error('该用户已在组织中')
 
-    if (insertError) return { success: false, msg: insertError.message }
+      // C. 拉入
+      const { error: insertError } = await supabase.from('organization_members').insert({
+        organization_id: currentOrg.value.id,
+        // @ts-ignore
+        user_id: foundUser.id,
+        role: 'member'
+      })
 
-    await fetchMembers()
-    return { success: true, msg: '邀请成功' }
+      if (insertError) throw new Error(insertError.message)
+
+      await fetchMembers()
+      return foundUser.email // 返回邮箱用于显示
+    })()
+
+    try {
+      await toast.promise(promise, {
+        loading: '正在查找用户...',
+        success: (email: string) => `已成功邀请 ${email}`,
+        error: (err) => err.message
+      })
+      return true
+    } catch {
+      return false
+    }
   }
 
   return {
