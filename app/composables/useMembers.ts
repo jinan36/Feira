@@ -21,10 +21,14 @@ type SearchResult = {
 
 export const useMembers = () => {
   const supabase = useSupabaseClient<Database>()
+  const user = useSupabaseUser()
   const { currentOrg } = useOrg()
 
   const members = useState<OrgMember[]>('orgMembers', () => [])
   const loading = useState<boolean>('membersLoading', () => false)
+  const isOwner = computed(() => {
+    return currentOrg.value?.owner_id === (user.value?.id || user.value?.sub)
+  })
 
   const fetchMembers = async () => {
     if (!currentOrg.value?.id) return
@@ -49,6 +53,12 @@ export const useMembers = () => {
 
     if (currentOrg.value.is_personal) {
       toast.error('操作被拒绝', { description: '个人组织无法邀请成员。' })
+      return false
+    }
+
+    const currentUserId = user.value?.sub || user.value?.id
+    if (currentOrg.value.owner_id !== currentUserId) {
+      toast.error('权限不足', { description: '只有组织所有者可以邀请成员。' })
       return false
     }
 
@@ -93,6 +103,7 @@ export const useMembers = () => {
 
   return {
     members,
+    isOwner,
     loading,
     fetchMembers,
     inviteMember
