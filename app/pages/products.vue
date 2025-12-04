@@ -70,7 +70,7 @@ const confirmDelete = async () => {
     <div class="relative bg-slate-50">
 
         <div
-            class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-sm px-4 py-3 border-b border-slate-100/50 flex items-center gap-3">
+            class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-sm pt-6 px-6 pb-3 border-b border-slate-100/50 flex items-center gap-3">
 
             <div class="relative flex-1">
                 <Search class="absolute left-3 top-3 h-5 w-5 text-slate-400" />
@@ -86,7 +86,7 @@ const confirmDelete = async () => {
 
         </div>
 
-        <div class="p-4 space-y-3">
+        <div class="pt-3 pb-6 px-6 space-y-3">
             <div v-if="loading" class="space-y-3">
                 <div v-for="i in 6" :key="i"
                     class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100">
