@@ -159,13 +159,13 @@ const handleLogout = async () => {
                         供应商
                     </h3>
                     <button @click="isVendorDialogOpen = true"
-                        class="group flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-50">
+                        class="group flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors rounded-lg hover:bg-blue-50">
                         <Plus class="w-4 h-4 transition-transform group-hover:rotate-90" />
                         <span>新建</span>
                     </button>
                 </div>
 
-                <div class="border-slate-100 shadow-sm overflow-hidden bg-white">
+                <div class="rounded-xl border-slate-100 shadow-sm overflow-hidden bg-white">
                     <div v-if="vendorLoading" class="p-6 space-y-4">
                         <div class="flex items-center justify-between" v-for="i in 2" :key="i">
                             <div class="flex items-center gap-3">
