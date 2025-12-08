@@ -1,9 +1,16 @@
 import tailwindcss from '@tailwindcss/vite'
+import pkg from './package.json'
+console.log(pkg.version)
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   app: {
     head: {
       title: 'FEIRA'
+    }
+  },
+  runtimeConfig: {
+    public: {
+      appVersion: pkg.version
     }
   },
   compatibilityDate: '2025-07-15',
