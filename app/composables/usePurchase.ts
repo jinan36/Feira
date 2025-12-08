@@ -32,7 +32,10 @@ export const usePurchase = () => {
       // ... 数据库更新状态 ...
       const { error: updateError } = await supabase
         .from('products')
-        .update({ is_needed: false })
+        .update({
+          is_needed: false,
+          last_price: price
+        })
         .eq('id', product.id)
       if (updateError) throw updateError
 

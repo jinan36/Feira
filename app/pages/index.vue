@@ -52,6 +52,11 @@ const handleConfirmPurchase = async (data) => {
     selectedProduct.value = null
   }
 }
+
+const formatPrice = (val) => {
+  if (!val) return ''
+  return Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
 </script>
 
 <template>
@@ -125,12 +130,16 @@ const handleConfirmPurchase = async (data) => {
                   class="h-3 w-3 rounded-full bg-blue-500 opacity-0 transition-opacity group-active:opacity-100"
                 ></div>
               </div>
-
-              <span
-                class="text-base font-bold text-slate-700 transition-colors group-active:text-blue-700"
-              >
-                {{ item.name }}
-              </span>
+              <div class="flex flex-col space-y-2">
+                <span
+                  class="text-base font-bold text-slate-700 transition-colors group-active:text-blue-700"
+                >
+                  {{ item.name }}
+                </span>
+                <span v-if="item.last_price" class="text-xs font-medium text-slate-400">
+                  上次: {{ formatPrice(item.last_price) }}
+                </span>
+              </div>
             </div>
 
             <ArrowRight

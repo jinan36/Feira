@@ -38,13 +38,11 @@ const handleConfirm = () => {
 
 <template>
   <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="open" class="fixed inset-0 z-70 bg-black/40 backdrop-blur-sm" @click="close"></div>
+    </Transition>
     <Transition name="slide-up">
-      <div v-if="open" class="pointer-events-none fixed inset-0 z-[70] flex flex-col justify-end">
-        <div
-          class="pointer-events-auto absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-          @click="close"
-        ></div>
-
+      <div v-if="open" class="pointer-events-none fixed inset-0 z-70 flex flex-col justify-end">
         <div
           class="pointer-events-auto relative flex max-h-[85vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-white shadow-2xl"
         >
@@ -123,6 +121,14 @@ const handleConfirm = () => {
 .slide-up-enter-from,
 .slide-up-leave-to {
   transform: translateY(100%);
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
